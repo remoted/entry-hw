@@ -9,12 +9,11 @@ function Module() {
         TONE: 5,
         PULSEIN: 6,
         ULTRASONIC: 7,
-        TIMER: 8,
+        IRREMOTE: 8,
         READ_BLUETOOTH: 9,
         WRITE_BLUETOOTH: 10,
         LCD: 11,
         DHT : 12,
-        //RGBLED: 12,
         DCMOTOR: 13,
         OLED: 14,
         PIR : 15,
@@ -64,9 +63,9 @@ function Module() {
             '5': 0,
         },
         PULSEIN: {},
-        TIMER: 0,
         READ_BLUETOOTH: 0,
-        DHT: 0,                 // DHT Added
+        DHT: 0, // DHT Added
+        IRREMOTE: 0, // IR-Data Added 2021-03-29       
     };
 
     this.defaultOutput = {};
@@ -285,9 +284,10 @@ Module.prototype.handleLocalData = function(data) {
                 self.sensorData.ULTRASONIC = value;
                 break;
             }
-            case self.sensorTypes.TIMER: {
-                self.sensorData.TIMER = value;
+            case self.sensorTypes.IRREMOTE: {
+                self.sensorData.IRREMOTE = value;
                 break;
+                // IR Remote-Type Added By Remoted 2021-03-29
             }
             case self.sensorTypes.READ_BLUETOOTH: {
                 self.sensorData.READ_BLUETOOTH = value;
@@ -314,7 +314,7 @@ Module.prototype.makeSensorReadBuffer = function(device, port, data) {
     let buffer;
     let value;
     const dummy = new Buffer([10]);
-    if ((device == this.sensorTypes.DIGITAL) || (device == this.sensorTypes.DHT)) {
+    if ((device == this.sensorTypes.DIGITAL) || (device == this.sensorTypes.DHT) || (device == this.sensorTypes.IRREMOTE)) {
         // data  PullDown 0 or Pullup 2
         if (!data) {
             buffer = new Buffer([255, 85, 6, sensorIdx, this.actionTypes.GET, device, port, 0, 10]);
@@ -484,8 +484,12 @@ Module.prototype.makeOutputBuffer = function(device, port, data) {
             Writed By Remoted 2020-12-17
             Row and Col variable added for using new block structure.
             Writed By Remoted 2021-03-01
+
+
+            Data Byte Patch From 32 to 44
+            Writed By Remoted 2021-04-25
             */
-            buffer = Buffer.from([255, 85, 36, sensorIdx, this.actionTypes.MODULE, device, port]);
+            buffer = Buffer.from([255, 85, 44, sensorIdx, this.actionTypes.MODULE, device, port]);
             buffer = Buffer.concat([buffer, lcdBlockIndex, displayRow, displayCol, direction, text0, text1, text2, text3, text4, text5, text6, text7, text8, text9, text10, text11, text12, text13, text14, text15, dummy]);
             break;
         }
@@ -553,7 +557,7 @@ Module.prototype.makeOutputBuffer = function(device, port, data) {
                 text14.writeInt16LE(0);
                 text15.writeInt16LE(0);
             }
-            buffer = Buffer.from([255, 85, 40, sensorIdx, this.actionTypes.MODULE, device, port]);
+            buffer = Buffer.from([255, 85, 42, sensorIdx, this.actionTypes.MODULE, device, port]);
             buffer = Buffer.concat([buffer, oledBlockIndex, displayRow, displayCol, text0, text1, text2, text3, text4, text5, text6, text7, text8, text9, text10, text11, text12, text13, text14, text15, dummy]);
 
             break;
@@ -633,6 +637,19 @@ Module.prototype.makeOutputBuffer = function(device, port, data) {
             buffer = Buffer.from([255, 85, 12, sensorIdx, this.actionTypes.MODULE, device, port]);
             buffer = Buffer.concat([buffer, dhtBlockIndex, dhtPin, dhtVerInfo, dhtTempMode, dummy]);
             break;  
+        }
+        case this.sensorTypes.IRREMOTE: {
+            const irBlockIndex = Buffer.alloc(2);
+
+            if ($.isPlainObject(data)) {
+                irBlockIndex.writeInt16LE(data.ir_block_index);
+            } else {
+                irBlockIndex.writeInt16LE(0);
+            }
+
+            buffer = Buffer.from([255, 85, 6, sensorIdx, this.actionTypes.MODULE, device, port]);
+            buffer = Buffer.concat([buffer, irBlockIndex, dummy]);
+            break;
         }
     }
     
