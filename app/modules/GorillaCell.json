@@ -1,8 +1,8 @@
 {
     "id": "360101",
     "name": {
-        "en": "Arduino + GorillaCell",
-        "ko": "아두이노 + 고릴라셀"
+        "en": "Arduino GorillaCell",
+        "ko": "아두이노 고릴라셀"
     },
     "category": "board",
     "platform": ["win32", "darwin"],
@@ -31,14 +31,13 @@
     }],
     "selectPort": true,
     "reconnect": true,
-    "firmware": "GorillaCell",       
+    "firmware": "board2",
     "hardware": {
         "type": "serial",
         "control": "slave",
         "duration": 32,
-        "vendor": ["Arduino", "wch.cn", "FTDI"],
-        "baudRate": 115200,
+        "vendor": "Arduino",
+        "baudRate": 9600,
         "firmwarecheck": true
     }
-    
 }
